@@ -114,16 +114,15 @@ record separator:
 
 ```
 ====
-this is record 1
+This is record 1.
 ====
-this is record 2
+This is record 2,
+which has multiple lines.
 ====
-the next two records are empty
+The next two records are empty.
 ====
 
 ====
-
-====/
 ```
 
 It is up to the program emitting the data to ensure that
@@ -156,10 +155,10 @@ string are considered part of the separator. Thus, the
 following C string
 
 ```
-"====\nthis is record 1\n====\nthis is record 2\n====/\n"
+"====\nthis is record 1\n====\nthis is record 2\n"
 ```
 
-parses to a two records:
+parses to two records:
 `"this is record 1"` and `"this is record 2"`.
 That is, the records do not contain any newlines.
 
@@ -167,21 +166,11 @@ To represent records with newlines, additional newline
 characters can of course be added:
 
 ```
-"====\n\na record\nwith line breaks\n\n====\nanother one\n====/\n"
+"====\n\na record\nwith line breaks\n\n====\nanother one\n"
 ```
 
 Here, the first record is
 `"\na record\nwith line breaks\n"`.
-
-### End of the Document
-
-The end of the document is signaled by a final record
-separator with an appended `/`, followed by a newline. This
-allows the program receiving the data to know if the data
-was cut short (which could happen if, for instance, the
-process emitting it was killed).
-
-TODO: is this really necessary?
 
 ### Composition
 
@@ -197,14 +186,11 @@ Verse format to produce a two-dimensional table:
 row 1, column 1
 ----
 row 1, column 2
-----/
 ====
 ----
 row 2, column 1
 ----
 row 2, column 2
-----/
-====/
 ```
 
 The receiving program must be aware of how many levels of
@@ -223,13 +209,35 @@ identical. Subject to that caveat, the following production
 rules describe the shape of the Verse format.
 
 ```
-document     -> record* terminator
+document     -> record*
 
 record       -> separator '\n' byte* '\n'
-
-terminator   -> separator '/' '\n'
 
 separator    -> visible-char visible-char*
 
 visible-char -> '!' | '"' | '#' | ... | '~'
 ```
+
+## Security Concerns
+
+There are several security concerns you should be aware of
+before using the Verse format.
+
+First, there is the possibility for a denial of service
+attack when the attacker knows (or can guess) the algorithm
+used to generate separators. If the separator is generated
+using the iterative lengthening algorithm described above,
+an attacker could provide data that forces the separator to
+be extremely long. For instance, if a program always builds
+separators from dashes, doubling the length of the string
+until an unambiguous separator is found, the attacker could
+provide data containing a million dashes in a row. This
+would cause separators to be a megabyte in length,
+potentially leading to exhaustion of disk space or memory,
+or high network usage.
+
+If, to mitigate the above attack, a programmer chooses to
+use randomly-generated separators instead, they should take
+care to use a secure random number generator. If an attacker
+can guess the random separator, they can craft a record that
+will be interpreted as multiple records.
