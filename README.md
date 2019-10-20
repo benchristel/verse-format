@@ -1,7 +1,9 @@
 # The Verse Format
 
 This document specifies a format for data storage and
-transmission, suitable for binary or UTF-8 string data.
+transmission, suitable for binary or UTF-8 string data, that
+unambiguously demarcates records within a byte stream.
+
 The format is intended to balance the needs of human and
 machine consumers, so that it could be used e.g. for
 Unix-style command line programs.
@@ -118,7 +120,9 @@ this is record 2
 ====
 the next two records are empty
 ====
+
 ====
+
 ====/
 ```
 
@@ -181,11 +185,11 @@ TODO: is this really necessary?
 
 ### Composition
 
-The format may be embedded in itself by choosing a second,
-non-conflicting separator for the inner documents.
+The Verse format may be embedded in itself by choosing a
+second, non-conflicting separator for the inner documents.
 
 For example, the following shows an example of nesting the
-format to produce a two-dimensional table:
+Verse format to produce a two-dimensional table:
 
 ```
 ====
@@ -206,7 +210,26 @@ row 2, column 2
 The receiving program must be aware of how many levels of
 nesting there are if it is to correctly parse them all.
 
-## The Empty Document
+### The Empty Document
 
 An empty set of records can be represented as an empty
 document.
+
+## Formal Syntax
+
+The syntax cannot be fully described using a context-free
+grammar, because all `separator`s in a `document` must be
+identical. Subject to that caveat, the following production
+rules describe the shape of the Verse format.
+
+```
+document     -> record* terminator
+
+record       -> separator '\n' byte* '\n'
+
+terminator   -> separator '/' '\n'
+
+separator    -> visible-char visible-char*
+
+visible-char -> '!' | '"' | '#' | ... | '~'
+```
