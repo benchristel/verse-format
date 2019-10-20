@@ -102,10 +102,10 @@ or stream to contain multiple documents.
 Each record is introduced by a line consisting of the
 *record separator* for the document. The record separator
 can be any string consisting of non-whitespace, printable
-ASCII characters in the range [0, 127] Since the first line
-of the document is *always* a record separator, it is a de
-facto declaration of what the record separator is for that
-document.
+ASCII characters in the range [33, 126]. Since the first
+line of the document is *always* a record separator, it is a
+de facto declaration of what the record separator is for
+that document.
 
 For example, the example document below uses `====` as the
 record separator:
